@@ -1,0 +1,25 @@
+# Makefile_64
+SRC = src/main.cpp
+CXX = x86_64-w64-mingw32-g++
+
+# FLAGS 64 bits
+CXXFLAGS_64 = -D_CRT_SECURE_NO_WARNINGS -DWIN64 -D_WINDOWS -std=c++17 -m64 -Iinclude -Ilibs
+LDFLAGS_64 = -lssl -lcrypto -lws2_32 -lcryptopp -lcrypt32 -lsqlite3 -static -static-libgcc -static-libstdc++ -m64
+OBJ_64 = build/64/kurva.o
+TARGET_64 = build/64/kurva.exe
+
+LIBS = -ladvapi32 -lpthread -lws2_32
+
+all: $(TARGET_64)
+
+$(TARGET_64): $(OBJ_64)
+	$(CXX) $(OBJ_64) $(LIBS) $(LDFLAGS_64) -o $(TARGET_64)
+	rm -rf build/64/*.o
+	@echo "True"
+
+build/64/kurva.o: $(SRC)
+	@mkdir -p build/64
+	$(CXX) $(CXXFLAGS_64) -c $(SRC) -o build/64/kurva.o
+
+clean:
+	@echo "Limpieza completada"
