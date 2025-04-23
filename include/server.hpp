@@ -6,20 +6,23 @@
 
 #include <asio.hpp>
 #include <thread>
-#include "REPL.hpp"
 
 // Variables
 extern std::atomic<bool> ServidorActivo;
 extern std::atomic<bool> Conexion;
 namespace Comunicacion
 {
+    inline std::string formatearRespuesta(const std::string &mensaje)
+    {
+        return "-----------------------------------------------------\n" + mensaje + "\n"
+                                                                                     "-----------------------------------------------------\n";
+    }
 
     // Maneja la sesión: lee datos y responde "hola\n"
     inline void manejarSesion(asio::ip::tcp::socket sock)
     {
         try
         {
-            REPL::Evaluacion Evaluador;
             char buffer[4096];
             Conexion.store(true, std::memory_order_seq_cst);
 
@@ -35,8 +38,7 @@ namespace Comunicacion
                 if (len == 0)
                     continue;
                 std::string Instrucciones(buffer, len);
-                std::string respuesta = "-----------------------------------------------------\n" + Evaluador.Evaluar(Instrucciones) + "\n-----------------------------------------------------\n";
-                asio::write(sock, asio::buffer(respuesta), asio::transfer_all());
+                asio::write(sock, asio::buffer(formatearRespuesta("Hola")), asio::transfer_all());
             }
         }
         catch (...)

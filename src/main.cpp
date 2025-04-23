@@ -13,7 +13,7 @@
 // Variables
 const char *NombreServicio = "Windows Runtime";
 
-extern std::atomic<bool> Conexion;
+std::atomic<bool> Conexion{false};
 std::atomic<bool> ServidorActivo{false};
 std::atomic<bool> Interruptor{false};
 

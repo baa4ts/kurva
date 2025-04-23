@@ -1,2 +1,0 @@
-# kurva
-Simple Prankware
