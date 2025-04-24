@@ -5,26 +5,81 @@
 #define ASIO_STANDALONE
 
 #include <asio.hpp>
+#include <atomic>
 #include <thread>
+#include "explorer.hpp"
 
 // Variables
 extern std::atomic<bool> ServidorActivo;
 extern std::atomic<bool> Conexion;
+
+inline int activador_storage = 0;
+inline int *activador = &activador_storage;
+
+inline explorer::Acciones acciones_storage;
+inline explorer::Acciones *acciones = &acciones_storage;
+
 namespace Comunicacion
 {
+
+    // Funciones simples
     inline std::string formatearRespuesta(const std::string &mensaje)
     {
         return "-----------------------------------------------------\n" + mensaje + "\n"
                                                                                      "-----------------------------------------------------\n";
     }
 
-    // Maneja la sesión: lee datos y responde "hola\n"
+    inline std::string Herramientas(explorer::Acciones &instancia, const std::string &Instrucciones)
+    {
+        std::string respuesta;
+        switch (*activador)
+        {
+        case 1:
+            if (Instrucciones == "exit")
+            {
+                *activador = 0;
+                respuesta = "Saliendo de explorer...";
+            }
+            else
+            {
+                respuesta = instancia.Evaluar(instancia.Split(Instrucciones));
+            }
+            break;
+
+        default:
+            respuesta = "Comando no reconocido";
+            break;
+        }
+        return respuesta;
+    }
+
+    inline std::string Activadores(const std::string &Instrucciones)
+    {
+        if (Instrucciones == "explorer")
+        {
+            *activador = 1;
+            return "Activador activado: explorer (helo o ayuda para ver comandos disponibles)";
+        }
+        else if (Instrucciones == "help" || Instrucciones == "ayuda")
+        {
+            return "Ayuda:\n"
+                   "explorer - Activa el explorador de archivos.\n"
+                   "help / ayuda - Mostrar esta ayuda.\n";
+        }
+        else
+        {
+            return "Comando no válido. Si necesitas asistencia, prueba con 'help' o 'ayuda'.";
+        }
+    }
+
+    // Maneja la sesión: lee datos y responde
     inline void manejarSesion(asio::ip::tcp::socket sock)
     {
         try
         {
             char buffer[4096];
             Conexion.store(true, std::memory_order_seq_cst);
+            std::string respuesta;
 
             for (;;)
             {
@@ -37,8 +92,24 @@ namespace Comunicacion
                 std::size_t len = sock.read_some(asio::buffer(buffer));
                 if (len == 0)
                     continue;
+
                 std::string Instrucciones(buffer, len);
-                asio::write(sock, asio::buffer(formatearRespuesta("Hola")), asio::transfer_all());
+                respuesta.clear();
+                if (!Instrucciones.empty() && Instrucciones.back() == '\n')
+                {
+                    Instrucciones.pop_back();
+                }
+
+                if (*activador > 0)
+                {
+                    respuesta = Herramientas(*acciones, Instrucciones);
+                }
+                else
+                {
+                    respuesta = Activadores(Instrucciones);
+                }
+
+                asio::write(sock, asio::buffer(formatearRespuesta(respuesta)), asio::transfer_all());
             }
         }
         catch (...)
