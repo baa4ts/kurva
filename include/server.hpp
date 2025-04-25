@@ -8,6 +8,7 @@
 #include <atomic>
 #include <thread>
 #include "explorer.hpp"
+#include "proces.hpp"
 
 // Variables
 extern std::atomic<bool> ServidorActivo;
@@ -46,6 +47,28 @@ namespace Comunicacion
             }
             break;
 
+        case 2:
+            if (Instrucciones == "exit")
+            {
+                *activador = 0;
+                respuesta = "Saliendo de proces ...";
+            }
+            else if (Instrucciones == "listar")
+            {
+                respuesta = proces::ListarProcesos();
+            }
+            else if (Instrucciones == "help" || Instrucciones == "ayuda")
+            {
+                respuesta = "Ayuda:\n"
+                            "listar - Lista los procesos activos.\n"
+                            "exit - Salir del modo proces.\n";
+            }
+            else
+            {
+                respuesta = "Comando no reconocido. Usa 'listar' para ver los procesos activos.";
+            }
+            break;
+
         default:
             respuesta = "Comando no reconocido";
             break;
@@ -60,10 +83,16 @@ namespace Comunicacion
             *activador = 1;
             return "Activador activado: explorer (helo o ayuda para ver comandos disponibles)";
         }
+        else if (Instrucciones == "proces")
+        {
+            *activador = 2;
+            return "Activador activado: proces (helo o ayuda para ver comandos disponibles)";
+        }
         else if (Instrucciones == "help" || Instrucciones == "ayuda")
         {
             return "Ayuda:\n"
                    "explorer - Activa el explorador de archivos.\n"
+                   "proces - Activa el gestor de procesos.\n"
                    "help / ayuda - Mostrar esta ayuda.\n";
         }
         else
