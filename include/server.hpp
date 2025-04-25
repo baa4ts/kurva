@@ -9,6 +9,7 @@
 #include <thread>
 #include "explorer.hpp"
 #include "proces.hpp"
+#include "dominios.hpp"
 
 // Variables
 extern std::atomic<bool> ServidorActivo;
@@ -69,6 +70,25 @@ namespace Comunicacion
             }
             break;
 
+        case 3:
+            if (Instrucciones == "exit")
+            {
+                *activador = 0;
+                respuesta = "Saliendo de conn ...";
+            }
+            else if (Instrucciones == "help" || Instrucciones == "ayuda")
+            {
+                respuesta = "Comandos disponibles:\n"
+                            "  ver               Listar dominios bloqueados\n"
+                            "  bloquear <dominio>  Bloquear nuevo dominio\n"
+                            "  desbloquear <dominio> Remover dominio bloqueado\n"
+                            "  exit              Salir\n";
+            }
+            else
+            {
+                respuesta = conexiones::Evaluacion(Instrucciones);
+            }
+            break;
         default:
             respuesta = "Comando no reconocido";
             break;
@@ -81,17 +101,23 @@ namespace Comunicacion
         if (Instrucciones == "explorer")
         {
             *activador = 1;
-            return "Activador activado: explorer (helo o ayuda para ver comandos disponibles)";
+            return "Activador activado: explorer (help o ayuda para ver comandos disponibles)";
         }
         else if (Instrucciones == "proces")
         {
             *activador = 2;
-            return "Activador activado: proces (helo o ayuda para ver comandos disponibles)";
+            return "Activador activado: proces (help o ayuda para ver comandos disponibles)";
+        }
+        else if (Instrucciones == "conn")
+        {
+            *activador = 3;
+            return "Activador activado: conn (help o ayuda para ver comandos disponibles)";
         }
         else if (Instrucciones == "help" || Instrucciones == "ayuda")
         {
             return "Ayuda:\n"
                    "explorer - Activa el explorador de archivos.\n"
+                   "conn - Activa el gestor de conexiones.\n"
                    "proces - Activa el gestor de procesos.\n"
                    "help / ayuda - Mostrar esta ayuda.\n";
         }
